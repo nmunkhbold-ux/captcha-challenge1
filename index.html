@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Captcha Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3ece0; --card:#ffffff; --surface:#e6dccb; --text:#1c1014; --muted:#5c4a4f;
+  --blood:#b3001b; --ok:#1d6b3a; --ok-text:#ffffff; --line:#bfae95; --check:#1a5fd1; --gold:#8a5a00;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0507; --card:#170c10; --surface:#24141a; --text:#ece3d4; --muted:#a8999b;
+    --blood:#e0102a; --ok:#3fd47a; --ok-text:#0a0507; --line:#3a242b; --check:#5b9bff; --gold:#ffc23d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0507; --card:#170c10; --surface:#24141a; --text:#ece3d4; --muted:#a8999b;
+  --blood:#e0102a; --ok:#3fd47a; --ok-text:#0a0507; --line:#3a242b; --check:#5b9bff; --gold:#ffc23d;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Chakra Petch",system-ui,sans-serif;font-size:17px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:0 auto;min-height:100%;padding:18px 18px 28px;display:flex;flex-direction:column;gap:14px}
+[hidden]{display:none!important}
+h1{font-family:"Creepster","Impact",fantasy;font-weight:400;font-size:48px;line-height:1;margin:8px 0 0;text-align:center;color:var(--blood);letter-spacing:2px}
+h2{font-family:"Creepster","Impact",fantasy;font-weight:400;font-size:34px;line-height:1.05;margin:0;letter-spacing:1px}
+.sub{margin:0;text-align:center;color:var(--muted);font-size:15px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:16px;min-height:56px;padding:12px 18px;font-weight:700;font-size:19px;color:var(--text);background:var(--surface)}
+button:focus-visible,input:focus-visible,.robot:focus-visible{outline:3px solid var(--check);outline-offset:3px}
+button:active,.robot:active{transform:scale(.98)}
+button:disabled{opacity:.35;cursor:default;transform:none}
+.primary{background:var(--blood);color:#fff}
+.pass{background:var(--ok);color:var(--ok-text)}
+.fail{background:var(--blood);color:#fff}
+.ghost{background:none;min-height:44px;font-size:15px;color:var(--muted);text-decoration:underline;padding:8px}
+.row{display:flex;gap:12px}
+.row>*{flex:1}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:18px}
+
+/* setup */
+.add{display:flex;gap:10px}
+.add input{flex:1;min-width:0;font:inherit;font-size:18px;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--text)}
+.add button{flex:none;width:64px;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border-radius:999px;padding:4px 4px 4px 14px;font-weight:700}
+.chip button{min-height:36px;width:36px;padding:0;border-radius:999px;font-size:18px;background:transparent;color:var(--muted)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;font-weight:600}
+.opt input[type=checkbox]{width:26px;height:26px;accent-color:var(--blood)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:48px;min-height:48px;padding:0}
+.stepper b{width:28px;text-align:center;font-size:22px}
+
+/* play */
+.topbar{display:flex;justify-content:space-between;align-items:center;font-size:15px;color:var(--muted)}
+.topbar button{min-height:44px;font-size:15px;padding:8px 14px}
+.upnext{text-align:center}
+.upnext .who{font-family:"Creepster","Impact",fantasy;font-size:44px;line-height:1.05;color:var(--text);letter-spacing:1px;word-break:break-word}
+.box{background:var(--card);border:2px solid var(--line);border-radius:18px;overflow:hidden;position:relative}
+.box-head{background:var(--blood);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.box-head strong{font-size:22px;line-height:1.15}
+.box-head span{font-size:14px;opacity:.9}
+.task{padding:20px 18px;font-size:26px;font-weight:700;line-height:1.25;text-align:center;min-height:140px;display:flex;align-items:center;justify-content:center}
+.bar{height:12px;background:var(--surface)}
+.bar span{display:block;height:100%;width:100%;background:var(--blood);transform-origin:left;transition:transform 1s linear}
+.timer{font-size:20px;font-weight:700;text-align:center;padding:10px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.timer.low{color:var(--blood)}
+.robot{display:flex;align-items:center;gap:16px;width:100%;min-height:72px;padding:14px 18px;background:var(--card);border:2px solid var(--line);border-radius:18px;font:inherit;font-size:20px;font-weight:700;color:var(--text);cursor:pointer;text-align:left}
+.robot .tick{width:36px;height:36px;border:3px solid var(--muted);border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center}
+.robot.on .tick{border-color:var(--check);background:var(--check)}
+.robot .tick svg{opacity:0}
+.robot.on .tick svg{opacity:1}
+.verdict{min-height:70px;text-align:center;font-size:21px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;gap:2px}
+.verdict.is-fail{color:var(--blood)}
+.verdict.is-pass{color:var(--ok)}
+.verdict .pts{font-size:15px;color:var(--muted)}
+.scan{position:absolute;left:0;right:0;height:4px;background:var(--check);box-shadow:0 0 18px var(--check);top:0;opacity:0}
+.scanning .scan{opacity:1;animation:scan .6s linear infinite alternate}
+@keyframes scan{from{top:56px}to{top:calc(100% - 4px)}}
+.flash{position:fixed;inset:0;background:var(--blood);opacity:0;pointer-events:none;z-index:50}
+.flash.go{animation:flash .45s ease-out}
+@keyframes flash{0%{opacity:.55}100%{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+.shake{animation:shake .22s 2}
+
+/* board */
+.board{list-style:none;margin:0;padding:0}
+.board li{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.board li:last-child{border-bottom:0}
+.board .rank{width:28px;font-weight:700;color:var(--muted);text-align:center}
+.board .nm{flex:1;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.board .sc{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.board .now{background:var(--surface);border-radius:12px;padding-left:8px;padding-right:8px}
+dialog{border:2px solid var(--line);border-radius:20px;background:var(--card);color:var(--text);width:min(92vw,440px);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+.award{text-align:center;padding:14px 10px}
+.award .lab{font-size:15px;color:var(--muted);font-weight:600}
+.award .nm{font-family:"Creepster","Impact",fantasy;font-size:42px;line-height:1.05;word-break:break-word}
+.award.gold .nm{color:var(--gold)}
+.award.robo .nm{color:var(--blood)}
+@media (prefers-reduced-motion: reduce){.shake,.flash.go,.scanning .scan{animation:none}.bar span{transition:none}button:active,.robot:active{transform:none}}
+</style>
+</head>
+<body>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<main class="app">
+
+<!-- SETUP -->
+<section id="s-setup">
+<h1>Captcha Challenge</h1>
+<p class="sub" style="margin-bottom:14px">Prove you’re human in 10 seconds. The AI Judge decides.</p>
+<div class="card">
+<h2>Who’s playing?</h2>
+<p class="small muted" style="margin:4px 0 12px">Add each player. Skip this for quick play without scores.</p>
+<form class="add" id="addForm">
+<input id="nameIn" maxlength="20" placeholder="Player name" aria-label="Player name" autocomplete="off" enterkeyhint="done">
+<button type="submit" class="primary" aria-label="Add player">+</button>
+</form>
+<div class="chips" id="chips"></div>
+</div>
+<div class="card" style="margin-top:14px">
+<div class="opt"><span>Turns per player</span><span class="stepper"><button id="rMinus" aria-label="Fewer turns">−</button><b id="rNum">2</b><button id="rPlus" aria-label="More turns">+</button></span></div>
+<label class="opt"><span>Robot voice reads tasks</span><input type="checkbox" id="optVoice" checked></label>
+<label class="opt"><span>Sound effects</span><input type="checkbox" id="optSound" checked></label>
+</div>
+<button class="primary" id="startBtn" style="width:100%;margin-top:16px">Start quick play</button>
+<p class="small muted" style="text-align:center;margin-top:12px">Scoring: Verified +1. Crowd cheers loud enough to overrule a fail: +2.</p>
+</section>
+
+<!-- PLAY -->
+<section id="s-play" hidden style="display:flex;flex-direction:column;gap:14px">
+<div class="topbar"><span id="progress"></span><button id="boardBtn">Scores</button></div>
+<div class="upnext" id="upnext"><div class="small muted">Up next</div><div class="who" id="who"></div></div>
+<div class="box" id="box">
+<div class="scan" aria-hidden="true"></div>
+<div class="box-head"><strong>Are you human?</strong><span>Task <b id="taskNo">0</b></span></div>
+<div class="task" id="task" aria-live="polite">Tap the box below to get your task.</div>
+<div class="bar" aria-hidden="true"><span id="bar"></span></div>
+<div class="timer" id="timer">10 seconds</div>
+</div>
+<button class="robot" id="draw" aria-label="I’m not a robot. Draw a task">
+<span class="tick"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+<span id="drawLabel">I’m not a robot</span>
+</button>
+<div class="row" id="judgeRow">
+<button class="pass" id="pass" disabled>Verified</button>
+<button class="fail" id="fail" disabled>Failed</button>
+</div>
+<div class="verdict" id="verdict" aria-live="polite"></div>
+<button id="overrule" hidden>Crowd overrules! Human +2</button>
+<button class="primary" id="nextBtn" hidden>Next human</button>
+<button class="ghost" id="endBtn">End game</button>
+</section>
+
+<!-- END -->
+<section id="s-end" hidden>
+<h1>Results</h1>
+<p class="sub" style="margin-bottom:14px">The Algorithm has finished its evaluation.</p>
+<div class="card award gold" id="awBest"><div class="lab">Most Human</div><div class="nm" id="bestName"></div><div class="small muted" id="bestPts"></div></div>
+<div class="card award robo" id="awBot" style="margin-top:12px"><div class="lab">Most Likely to Be a Robot</div><div class="nm" id="botName"></div><div class="small muted" id="botPts"></div></div>
+<div class="card" style="margin-top:12px"><ul class="board" id="endBoard"></ul></div>
+<div class="row" style="margin-top:16px">
+<button id="againBtn" class="primary">Play again</button>
+<button id="newBtn">New players</button>
+</div>
+</section>
+</main>
+
+<dialog id="boardDlg" aria-labelledby="boardTitle">
+<h2 id="boardTitle" style="margin-bottom:8px">Scores</h2>
+<ul class="board" id="liveBoard"></ul>
+<button style="width:100%;margin-top:14px" id="closeDlg">Close</button>
+</dialog>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const TASKS=["Draw a cat in 10 seconds.","Do your best scared scream.","Tell a joke a robot would never understand.","Show three different emotions in 10 seconds.","Laugh like a real human. Not that real.","Name five things that are not in a computer.","Dance like no algorithm is watching.","Describe how pizza tastes without saying “good”.","Make the scariest face you can and hold it.","Convince the Judge you have a soul in one sentence.","Walk across the room like a human. The Judge decides what that means.","Say “I am not a robot” in your most suspicious voice.","Sneeze dramatically on command.","Make the crowd laugh within 10 seconds.","Hum a Halloween tune. The crowd must guess it.","Do something only a human would do. Surprise us.","Blink normally for 10 seconds. Too normal is suspicious.","Show us your best zombie walk.","Name three feelings you had today.","Do a dramatic death scene.","Explain why you’re late, very convincingly.","Count backwards from 10 like a scared human.","Act out your reaction to a ghost in the mirror.","Compliment the Judge. Flattery may work.","Pretend your phone battery just died.","Moonwalk away from an invisible monster.","Give a 10-second speech on why humans should stay in charge.","Show us how you look when you see your exam grade."];
+const FAIL=["Verification failed. Please try being more human.","Emotion detected. Accuracy: 12 percent.","Scream rejected. Too optimized.","Error: soul not found.","That looked rehearsed. Suspicious.","Humanity score: 3 out of 100.","Robot behavior detected. Please report for an update.","Nice try, machine."];
+const PASS=["Verified. Welcome, human. We will be watching.","Verified. For now.","Human confirmed. Added to the list.","Acceptable. Barely.","Fine. You may keep your face."];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let S=store.get('captcha2',{players:[],rounds:2,voice:true,sound:true});
+S.players=S.players||[];
+const save=()=>store.set('captcha2',S);
+
+/* sound + voice */
+let ac=null;
+function audio(){if(!S.sound)return null;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch(e){return null}}
+function tone(f,d,type,vol,delay,slide){const a=audio();if(!a)return;const t=a.currentTime+(delay||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);g.gain.setValueAtTime(vol||.08,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)}
+const sfx={
+  draw(){tone(660,.08,'square',.06);tone(990,.1,'square',.06,.09)},
+  tick(){tone(1200,.05,'square',.05)},
+  end(){tone(220,.5,'sawtooth',.09)},
+  scan(){for(let i=0;i<6;i++)tone(400+i*120,.07,'triangle',.05,i*.17)},
+  pass(){tone(523,.14,'triangle',.1);tone(784,.22,'triangle',.1,.14)},
+  fail(){tone(300,.6,'sawtooth',.1,0,60);tone(150,.4,'square',.06,.05,40)},
+  cheer(){[523,659,784,1047].forEach((f,i)=>tone(f,.12,'triangle',.09,i*.08))}
+};
+function say(text){if(!S.voice||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/[“”]/g,''));u.rate=.92;u.pitch=.15;u.lang='en-US';speechSynthesis.speak(u)}catch(e){}}
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+
+/* setup */
+function renderChips(){
+  const c=$('chips');c.innerHTML='';
+  S.players.forEach((p,i)=>{const ch=document.createElement('span');ch.className='chip';ch.append(document.createTextNode(p.name));const x=document.createElement('button');x.type='button';x.textContent='×';x.setAttribute('aria-label','Remove '+p.name);x.onclick=()=>{S.players.splice(i,1);save();renderChips()};ch.append(x);c.append(ch)});
+  $('startBtn').textContent=S.players.length?'Start game ('+S.players.length+' players)':'Start quick play';
+  $('rNum').textContent=S.rounds;
+}
+$('addForm').onsubmit=e=>{e.preventDefault();const v=$('nameIn').value.trim();if(!v)return;S.players.push({name:v,score:0,pass:0,fail:0});$('nameIn').value='';save();renderChips();$('nameIn').focus()};
+$('rMinus').onclick=()=>{S.rounds=Math.max(1,S.rounds-1);save();renderChips()};
+$('rPlus').onclick=()=>{S.rounds=Math.min(5,S.rounds+1);save();renderChips()};
+$('optVoice').checked=S.voice;$('optSound').checked=S.sound;
+$('optVoice').onchange=e=>{S.voice=e.target.checked;save()};
+$('optSound').onchange=e=>{S.sound=e.target.checked;save()};
+renderChips();
+
+/* game */
+let deck=shuffle(TASKS),turn=0,taskCount=0,timer=null,left=10,last=null,quick=false;
+function show(id){['s-setup','s-play','s-end'].forEach(s=>$(s).hidden=s!==id);window.scrollTo(0,0)}
+function totalTurns(){return S.players.length*S.rounds}
+function current(){return S.players[turn%S.players.length]}
+function setBar(f,anim){const b=$('bar');b.style.transition=anim&&!reduce?'':'none';b.style.transform='scaleX('+f+')';if(!anim){void b.offsetWidth;b.style.transition=''}}
+function stopTimer(){clearInterval(timer);timer=null}
+function resetTurnUI(){
+  stopTimer();setBar(1,false);
+  $('task').textContent='Tap the box below to get your task.';
+  $('timer').textContent='10 seconds';$('timer').className='timer';
+  $('draw').classList.remove('on');$('draw').disabled=false;$('drawLabel').textContent='I’m not a robot';
+  $('pass').disabled=true;$('fail').disabled=true;
+  $('verdict').className='verdict';$('verdict').textContent='';
+  $('overrule').hidden=true;$('nextBtn').hidden=true;$('judgeRow').hidden=false;
+  if(quick){$('upnext').hidden=true;$('progress').textContent='Quick play';$('boardBtn').hidden=true}
+  else{$('upnext').hidden=false;const p=current();$('who').textContent=p.name;const r=Math.floor(turn/S.players.length)+1;$('progress').textContent='Turn '+(turn+1)+' of '+totalTurns()+' · Round '+r;$('boardBtn').hidden=false}
+}
+function startGame(){
+  quick=S.players.length===0;
+  S.players.forEach(p=>{p.score=0;p.pass=0;p.fail=0});save();
+  turn=0;taskCount=0;deck=shuffle(TASKS);
+  show('s-play');resetTurnUI();audio();
+  if(!quick)say('Next human: '+current().name);
+}
+$('startBtn').onclick=startGame;
+
+function typeOut(el,text,done){
+  if(reduce){el.textContent=text;done&&done();return}
+  el.textContent='';let i=0;const step=Math.max(1,Math.ceil(text.length/24));
+  const iv=setInterval(()=>{i+=step;el.textContent=text.slice(0,i);if(i>=text.length){clearInterval(iv);done&&done()}},25);
+}
+$('draw').onclick=()=>{
+  if(!deck.length)deck=shuffle(TASKS);
+  const t=deck.pop();taskCount++;$('taskNo').textContent=taskCount;
+  $('draw').classList.add('on');$('draw').disabled=true;$('drawLabel').textContent='Verifying…';
+  $('verdict').textContent='';$('verdict').className='verdict';
+  sfx.draw();buzz(30);say(t);
+  typeOut($('task'),t);
+  left=10;setBar(1,false);$('timer').textContent='10 seconds';$('timer').className='timer';
+  $('pass').disabled=false;$('fail').disabled=false;
+  stopTimer();
+  timer=setInterval(()=>{
+    left--;setBar(left/10,true);
+    $('timer').classList.toggle('low',left<=3);
+    if(left>0){$('timer').textContent=left+(left===1?' second':' seconds');if(left<=3)sfx.tick()}
+    else{stopTimer();$('timer').textContent='Time’s up. Judge, decide.';sfx.end();buzz([200,100,200])}
+  },1000);
+};
+function judge(ok){
+  stopTimer();$('pass').disabled=true;$('fail').disabled=true;
+  const box=$('box'),v=$('verdict');
+  box.classList.add('scanning');v.className='verdict';v.textContent='Scanning humanity…';sfx.scan();
+  setTimeout(()=>{
+    box.classList.remove('scanning');
+    const line=ok?pick(PASS):pick(FAIL);
+    v.className='verdict '+(ok?'is-pass':'is-fail');
+    v.innerHTML='';v.append(document.createTextNode(line));
+    if(!quick){const p=current();if(ok){p.score+=1;p.pass++}else{p.fail++}save();const pts=document.createElement('span');pts.className='pts';pts.textContent=p.name+': '+p.score+(p.score===1?' point':' points');v.append(pts)}
+    $('timer').textContent=ok?'Human verified':'Robot suspected';
+    if(ok){sfx.pass();buzz(60)}else{sfx.fail();buzz([80,60,80]);if(!reduce){box.classList.remove('shake');void box.offsetWidth;box.classList.add('shake');const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}}
+    say(line);
+    $('judgeRow').hidden=true;
+    $('overrule').hidden=ok||quick;
+    $('nextBtn').hidden=false;
+    $('nextBtn').textContent=quick?'Next task':(turn+1>=totalTurns()?'See results':'Next human');
+    last=ok;
+  },reduce?300:1200);
+}
+$('pass').onclick=()=>judge(true);
+$('fail').onclick=()=>judge(false);
+$('overrule').onclick=()=>{
+  const p=current();p.score+=2;p.pass++;p.fail=Math.max(0,p.fail-1);save();
+  const v=$('verdict');v.className='verdict is-pass';v.innerHTML='';v.append(document.createTextNode('Override accepted. The humans have spoken.'));
+  const pts=document.createElement('span');pts.className='pts';pts.textContent=p.name+': '+p.score+' points';v.append(pts);
+  $('overrule').hidden=true;$('timer').textContent='Human verified by the crowd';sfx.cheer();say('Override accepted. The humans have spoken.');
+};
+$('nextBtn').onclick=()=>{
+  if(quick){resetTurnUI();return}
+  turn++;
+  if(turn>=totalTurns()){finish();return}
+  resetTurnUI();say('Next human: '+current().name);
+};
+$('endBtn').onclick=()=>{if(!confirm('End the game now?'))return;stopTimer();if(quick||!S.players.length){show('s-setup');renderChips()}else finish()};
+
+/* boards */
+function ranked(){return S.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score||a.fail-b.fail)}
+function fillBoard(ul){
+  ul.innerHTML='';const cur=quick?-1:S.players.indexOf(current());
+  ranked().forEach((p,k)=>{const li=document.createElement('li');if(p.i===cur&&ul.id==='liveBoard')li.className='now';
+    const r=document.createElement('span');r.className='rank';r.textContent=k+1;
+    const n=document.createElement('span');n.className='nm';n.textContent=p.name;
+    const s=document.createElement('span');s.className='sc';s.textContent=p.score;
+    li.append(r,n,s);ul.append(li)});
+}
+$('boardBtn').onclick=()=>{fillBoard($('liveBoard'));$('boardDlg').showModal()};
+$('closeDlg').onclick=()=>$('boardDlg').close();
+function finish(){
+  stopTimer();
+  const r=ranked();
+  const best=r[0];const bot=r.slice().sort((a,b)=>a.score-b.score||b.fail-a.fail)[0];
+  $('bestName').textContent=best.name;$('bestPts').textContent=best.score+(best.score===1?' point':' points');
+  const solo=r.length<2;$('awBot').hidden=solo;
+  if(!solo){$('botName').textContent=bot.name;$('botPts').textContent=bot.fail+(bot.fail===1?' failed check':' failed checks')}
+  fillBoard($('endBoard'));
+  show('s-end');sfx.cheer();say('Evaluation complete. Most human: '+best.name+(solo?'':'. Most likely to be a robot: '+bot.name));
+}
+$('againBtn').onclick=startGame;
+$('newBtn').onclick=()=>{S.players=[];save();renderChips();show('s-setup')};
+})();
+</script>
+</body>
+</html>
